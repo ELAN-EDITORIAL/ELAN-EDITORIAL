@@ -4,119 +4,231 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carrito de Compras</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: auto;
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
             padding: 20px;
             background-color: white;
-            text-align: center;
         }
-        .producto {
+
+        .banner {
+            width: 100%;
+            height: 250px;
+            background: url('CARRITO BANNER.png') no-repeat center center/cover;
+            margin-bottom: 30px;
+        }
+
+        .carrito-container {
+            max-width: 900px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .carrito-item {
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            padding: 10px;
             border-bottom: 1px solid #ddd;
+            padding: 15px 0;
         }
-        .boton {
-            padding: 5px 10px;
-            border: none;
-            background-color: #8e81e0;
-            color: white;
-            cursor: pointer;
-            margin: 5px;
+
+        .carrito-item img {
+            width: 80px;
+            height: auto;
+            border-radius: 5px;
         }
-        .boton:hover {
-            background-color: #6a5acd;
+
+        .carrito-info {
+            flex-grow: 1;
+            text-align: left;
+            padding-left: 15px;
         }
-        .total {
-            font-size: 18px;
+
+        .carrito-precio {
             font-weight: bold;
-            margin-top: 15px;
+            color: #8e81e0 !important;
         }
+
+        .cantidad-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .cantidad-container button {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            background: white;
+            color: #8e81e0;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 5px;
+            border: 2px solid #8e81e0;
+        }
+
+        .cantidad-container input {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            background: white;
+            color: #8e81e0;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 5px;
+            border: none;
+        }
+
+        .cantidad-container button:hover {
+            background: #8e81e0;
+            color: white;
+        }
+
+        .total-container {
+            text-align: right;
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .boton {
+            margin-top: 20px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 2px solid #8e81e0;
+            background: white;
+            color: #8e81e0;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .boton:hover {
+            background: #8e81e0;
+            color: white;
+        }
+            .eliminar {
+            color: red;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px;
+        }
+
+        .eliminar i {
+            font-size: 24px;
+        }
+            #paypal-button-container {
+    margin-top: 20px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+}
+
+.paypal-buttons iframe {
+    transform: scale(0.75);
+    transform-origin: center;
+}
     </style>
 </head>
 <body>
-    <h2>Carrito de Compras</h2>
-    <div id="carrito"></div>
-    <p class="total">Total: <span id="total">0.00€</span></p>
-    <button class="boton" onclick="vaciarCarrito()">Vaciar Carrito</button>
-    
+    <div class="banner"></div>
+    <div class="carrito-container">
+        <button class="boton" onclick="seguirComprando()"><strong>&lt;</strong> Seguir Comprando</button>
+        <div class="carrito-item">
+            <img src="PORTADA.jpg" alt="Portada del libro">
+            <div class="carrito-info" style="display: flex; flex-direction: column; align-items: flex-start; gap: 0px; line-height: 0.8;">
+                <h3>Libro Ejemplo</h3>
+                <p>Autor Ejemplo</p>
+                <p class="carrito-precio">16,00€</p>
+            </div>
+            <div class="cantidad-container">
+                <button onclick="actualizarCantidad(-1)">-</button>
+                <input type="text" id="cantidad" value="1" readonly>
+                <button onclick="actualizarCantidad(1)">+</button>
+            </div>
+            <button class="eliminar" onclick="eliminarLibro(this)">
+                <img src="PAPELERA BOTON.png" alt="Eliminar" style="width: 30px; height: auto;">
+            </button>
+        </div>
+        <div class="resumen-pedido" style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
+            <p style="font-size: 14px; margin: 0;">Subtotal: <span id="subtotal">16,00€</span></p>
+            <p style="font-size: 14px; margin: 0;">Envío: <span id="envio">4,50€</span></p>
+            <p style="font-size: 20px; font-weight: bold; margin-top: 5px;">Total: <span id="total">19,50€</span></p>
+        </div>
+        <div id="paypal-button-container"></div>
+        
+    </div>
+
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=EUR&disable-funding=paylater,credit,venmo"></script>
     <script>
-        let carrito = JSON.parse(localStorage.getItem("carrito"));
-        if (!Array.isArray(carrito)) {
-            carrito = [];
-        }
+        let cantidad = 1;
+        const precioUnitario = 16.00;
 
-        // Función para obtener parámetros de la URL
-        function getParametroURL(nombre) {
-            const params = new URLSearchParams(window.location.search);
-            return params.get(nombre);
-        }
+        function actualizarCantidad(cambio) {
+    cantidad = Math.max(1, cantidad + cambio);
+    document.getElementById('cantidad').value = cantidad;
+    actualizarTotal();
+}
 
-        // Si hay un libro en la URL, lo añadimos al carrito
-        const libroURL = decodeURIComponent(getParametroURL("libro"));
-        const precioURL = parseFloat(getParametroURL("precio")) || 0;
-        if (libroURL && precioURL) {
-            const existente = carrito.find(item => item.nombre === libroURL);
-            if (existente) {
-                existente.cantidad += 1;
-            } else {
-                carrito.push({ nombre: libroURL, precio: precioURL, cantidad: 1 });
+function calcularEnvio(cantidad) {
+    if (cantidad <= 2) {
+        return 4.50;
+    } else if (cantidad <= 4) {
+        return 5.00;
+    } else if (cantidad <= 6) {
+        return 5.50;
+    } else {
+        return 6.00;
+    }
+}
+
+function actualizarTotal() {
+    let subtotal = cantidad * precioUnitario;
+    let envio = calcularEnvio(cantidad);
+    let total = subtotal + envio;
+    document.getElementById('subtotal').innerText = subtotal.toFixed(2) + '€';
+    document.getElementById('envio').innerText = envio.toFixed(2) + '€';
+    document.getElementById('total').innerText = total.toFixed(2) + '€';
+}
+
+        function eliminarLibro(button) {
+            let item = button.closest('.carrito-item');
+            if (item) {
+                item.remove();
             }
-            actualizarCarrito();
-            localStorage.setItem("carrito", JSON.stringify(carrito));
-        }
-        if (!Array.isArray(carrito)) {
-            carrito = [];
+            actualizarTotal();
         }
 
-        function actualizarCarrito() {
-            const carritoDiv = document.getElementById("carrito");
-            const totalSpan = document.getElementById("total");
-            carritoDiv.innerHTML = "";
-            let total = 0;
+        paypal.Buttons({
+    createOrder: function(data, actions) {
+        return actions.order.create({
+            purchase_units: [{
+                amount: {
+                    value: document.getElementById('total').innerText.replace('€', '')
+                }
+            }]
+        });
+    },
+    onApprove: function(data, actions) {
+        return actions.order.capture().then(function(details) {
+            alert('Pago completado por ' + details.payer.name.given_name);
+        });
+    }
+}).render('#paypal-button-container');
 
-            carrito.forEach((producto, index) => {
-                total += producto.precio * producto.cantidad;
-                carritoDiv.innerHTML += `
-                    <div class="producto">
-                        <span>${producto.nombre} - ${producto.precio.toFixed(2)}€</span>
-                        <span>
-                            <button class="boton" onclick="cambiarCantidad(${index}, -1)">-</button>
-                            ${producto.cantidad}
-                            <button class="boton" onclick="cambiarCantidad(${index}, 1)">+</button>
-                            <button class="boton" onclick="eliminarProducto(${index})">🗑</button>
-                        </span>
-                    </div>
-                `;
-            });
-
-            totalSpan.textContent = total.toFixed(2) + "€";
-            localStorage.setItem("carrito", JSON.stringify(carrito));
+        function seguirComprando() {
+            alert('Continúa comprando');
         }
-
-        function cambiarCantidad(index, cambio) {
-            if (carrito[index].cantidad + cambio > 0) {
-                carrito[index].cantidad += cambio;
-            } else {
-                carrito.splice(index, 1);
-            }
-            actualizarCarrito();
-        }
-
-        function eliminarProducto(index) {
-            carrito.splice(index, 1);
-            actualizarCarrito();
-        }
-
-        function vaciarCarrito() {
-            carrito = [];
-            actualizarCarrito();
-        }
-
-        actualizarCarrito();
     </script>
 </body>
 </html>
