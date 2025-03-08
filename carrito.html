@@ -95,140 +95,75 @@
             font-weight: bold;
         }
 
-        .boton {
-            margin-top: 20px;
-            padding: 10px 15px;
-            border-radius: 5px;
-            border: 2px solid #8e81e0;
-            background: white;
-            color: #8e81e0;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s, color 0.3s;
-        }
-
-        .boton:hover {
-            background: #8e81e0;
-            color: white;
-        }
-            .eliminar {
-            color: red;
-            border: none;
+        .eliminar {
             background: none;
+            border: none;
             cursor: pointer;
-            font-size: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 5px;
         }
 
-        .eliminar i {
-            font-size: 24px;
+        .eliminar img {
+            width: 30px;
+            height: auto;
         }
-            #paypal-button-container {
-    margin-top: 20px;
-    text-align: center;
-    display: flex;
-    justify-content: center;
-}
-
-.paypal-buttons iframe {
-    transform: scale(0.75);
-    transform-origin: center;
-}
     </style>
 </head>
 <body>
     <div class="banner"></div>
     <div class="carrito-container">
         <button class="boton" onclick="seguirComprando()"><strong>&lt;</strong> Seguir Comprando</button>
-        <div class="carrito-item">
-            <img src="PORTADA.jpg" alt="Portada del libro">
-            <div class="carrito-info" style="display: flex; flex-direction: column; align-items: flex-start; gap: 0px; line-height: 0.8;">
-                <h3>Libro Ejemplo</h3>
-                <p>Autor Ejemplo</p>
-                <p class="carrito-precio">16,00€</p>
-            </div>
-            <div class="cantidad-container">
-                <button onclick="actualizarCantidad(-1)">-</button>
-                <input type="text" id="cantidad" value="1" readonly>
-                <button onclick="actualizarCantidad(1)">+</button>
-            </div>
-            <button class="eliminar" onclick="eliminarLibro(this)">
-                <img src="PAPELERA BOTON.png" alt="Eliminar" style="width: 30px; height: auto;">
-            </button>
-        </div>
-        <div class="resumen-pedido" style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
-            <p style="font-size: 14px; margin: 0;">Subtotal: <span id="subtotal">16,00€</span></p>
-            <p style="font-size: 14px; margin: 0;">Envío: <span id="envio">4,50€</span></p>
-            <p style="font-size: 20px; font-weight: bold; margin-top: 5px;">Total: <span id="total">19,50€</span></p>
-        </div>
-        <div id="paypal-button-container"></div>
-        
+        <div id="carrito-items"></div>
+        <div class="total-container">Total: <span id="total">0.00€</span></div>
     </div>
-
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=EUR&disable-funding=paylater,credit,venmo"></script>
     <script>
-        let cantidad = 1;
-        const precioUnitario = 16.00;
+        let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
 
-        function actualizarCantidad(cambio) {
-    cantidad = Math.max(1, cantidad + cambio);
-    document.getElementById('cantidad').value = cantidad;
-    actualizarTotal();
-}
+        function actualizarCarrito() {
+            const carritoDiv = document.getElementById("carrito-items");
+            const totalSpan = document.getElementById("total");
+            carritoDiv.innerHTML = "";
+            let total = 0;
 
-function calcularEnvio(cantidad) {
-    if (cantidad <= 2) {
-        return 4.50;
-    } else if (cantidad <= 4) {
-        return 5.00;
-    } else if (cantidad <= 6) {
-        return 5.50;
-    } else {
-        return 6.00;
-    }
-}
+            carrito.forEach((producto, index) => {
+                total += producto.precio * producto.cantidad;
+                carritoDiv.innerHTML += `
+                    <div class="carrito-item">
+                        <span>${producto.nombre} - ${producto.precio.toFixed(2)}€</span>
+                        <span>
+                            <button class="boton" onclick="cambiarCantidad(${index}, -1)">-</button>
+                            ${producto.cantidad}
+                            <button class="boton" onclick="cambiarCantidad(${index}, 1)">+</button>
+                            <button class="eliminar" onclick="eliminarProducto(${index})">
+                                <img src="PAPELERA BOTON.png" alt="Eliminar">
+                            </button>
+                        </span>
+                    </div>
+                `;
+            });
 
-function actualizarTotal() {
-    let subtotal = cantidad * precioUnitario;
-    let envio = calcularEnvio(cantidad);
-    let total = subtotal + envio;
-    document.getElementById('subtotal').innerText = subtotal.toFixed(2) + '€';
-    document.getElementById('envio').innerText = envio.toFixed(2) + '€';
-    document.getElementById('total').innerText = total.toFixed(2) + '€';
-}
-
-        function eliminarLibro(button) {
-            let item = button.closest('.carrito-item');
-            if (item) {
-                item.remove();
-            }
-            actualizarTotal();
+            totalSpan.textContent = total.toFixed(2) + "€";
+            localStorage.setItem("carrito", JSON.stringify(carrito));
         }
 
-        paypal.Buttons({
-    createOrder: function(data, actions) {
-        return actions.order.create({
-            purchase_units: [{
-                amount: {
-                    value: document.getElementById('total').innerText.replace('€', '')
-                }
-            }]
-        });
-    },
-    onApprove: function(data, actions) {
-        return actions.order.capture().then(function(details) {
-            alert('Pago completado por ' + details.payer.name.given_name);
-        });
-    }
-}).render('#paypal-button-container');
+        function cambiarCantidad(index, cambio) {
+            if (carrito[index].cantidad + cambio > 0) {
+                carrito[index].cantidad += cambio;
+            } else {
+                eliminarProducto(index);
+            }
+            actualizarCarrito();
+        }
+
+        function eliminarProducto(index) {
+            carrito.splice(index, 1);
+            localStorage.setItem("carrito", JSON.stringify(carrito));
+            actualizarCarrito();
+        }
 
         function seguirComprando() {
-            alert('Continúa comprando');
+            window.location.href = 'index.html';
         }
+
+        actualizarCarrito();
     </script>
 </body>
 </html>
