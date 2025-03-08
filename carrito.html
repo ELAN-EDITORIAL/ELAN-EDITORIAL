@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito de Compras</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background-color: white;
+            text-align: center;
+        }
+        .producto {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .boton {
+            padding: 5px 10px;
+            border: none;
+            background-color: #8e81e0;
+            color: white;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .boton:hover {
+            background-color: #6a5acd;
+        }
+        .total {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Carrito de Compras</h2>
+    <div id="carrito"></div>
+    <p class="total">Total: <span id="total">0.00€</span></p>
+    <button class="boton" onclick="vaciarCarrito()">Vaciar Carrito</button>
+    
+    <script>
+        let carrito = JSON.parse(localStorage.getItem("carrito"));
+        if (!Array.isArray(carrito)) {
+            carrito = [];
+        }
+
+        // Función para obtener parámetros de la URL
+        function getParametroURL(nombre) {
+            const params = new URLSearchParams(window.location.search);
+            return params.get(nombre);
+        }
+
+        // Si hay un libro en la URL, lo añadimos al carrito
+        const libroURL = getParametroURL("libro");
+        const precioURL = parseFloat(getParametroURL("precio"));
+        if (libroURL && precioURL) {
+            const existente = carrito.find(item => item.nombre === libroURL);
+            if (existente) {
+                existente.cantidad += 1;
+            } else {
+                carrito.push({ nombre: libroURL, precio: precioURL, cantidad: 1 });
+            }
+            actualizarCarrito();
+            localStorage.setItem("carrito", JSON.stringify(carrito));
+        }
+        if (!Array.isArray(carrito)) {
+            carrito = [];
+        }
+
+        function actualizarCarrito() {
+            const carritoDiv = document.getElementById("carrito");
+            const totalSpan = document.getElementById("total");
+            carritoDiv.innerHTML = "";
+            let total = 0;
+
+            carrito.forEach((producto, index) => {
+                total += producto.precio * producto.cantidad;
+                carritoDiv.innerHTML += `
+                    <div class="producto">
+                        <span>${producto.nombre} - ${producto.precio.toFixed(2)}€</span>
+                        <span>
+                            <button class="boton" onclick="cambiarCantidad(${index}, -1)">-</button>
+                            ${producto.cantidad}
+                            <button class="boton" onclick="cambiarCantidad(${index}, 1)">+</button>
+                            <button class="boton" onclick="eliminarProducto(${index})">🗑</button>
+                        </span>
+                    </div>
+                `;
+            });
+
+            totalSpan.textContent = total.toFixed(2) + "€";
+            localStorage.setItem("carrito", JSON.stringify(carrito));
+        }
+
+        function cambiarCantidad(index, cambio) {
+            if (carrito[index].cantidad + cambio > 0) {
+                carrito[index].cantidad += cambio;
+            } else {
+                carrito.splice(index, 1);
+            }
+            actualizarCarrito();
+        }
+
+        function eliminarProducto(index) {
+            carrito.splice(index, 1);
+            actualizarCarrito();
+        }
+
+        function vaciarCarrito() {
+            carrito = [];
+            actualizarCarrito();
+        }
+
+        actualizarCarrito();
+    </script>
+</body>
+</html>
