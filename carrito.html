@@ -56,8 +56,8 @@
         }
 
         // Si hay un libro en la URL, lo añadimos al carrito
-        const libroURL = getParametroURL("libro");
-        const precioURL = parseFloat(getParametroURL("precio"));
+        const libroURL = decodeURIComponent(getParametroURL("libro"));
+        const precioURL = parseFloat(getParametroURL("precio")) || 0;
         if (libroURL && precioURL) {
             const existente = carrito.find(item => item.nombre === libroURL);
             if (existente) {
